@@ -1,0 +1,27 @@
+$drawer-width: 240px;
+
+.root {
+  display: flex;
+
+  .content {
+    flex-grow: 1;
+    height: 100vh;
+    overflow: auto;
+
+    .app-bar-spacer {
+      min-height: 56px;
+    }
+
+    .container {
+      padding-top: 32px;
+      padding-bottom: 32px;
+
+      .paper {
+        display: flex;
+        padding: 16px;
+        overflow: auto;
+        flex-direction: column;
+      }
+    }
+  }
+}

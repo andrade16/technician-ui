@@ -1,0 +1,33 @@
+
+.root {
+  .drawer-paper {
+    width: 240px;
+    position: relative;
+    transition: width 225ms cubic-bezier(0.4, 0, 0.6, 1) 0ms;
+    white-space: nowrap;
+  }
+
+  .drawer-paper-close {
+    width: 56px;
+    overflow-x: hidden;
+    position: relative;
+    transition: width 195ms cubic-bezier(0.4, 0, 0.6, 1) 0ms;
+
+    @media (min-width: 600px) {
+      width: 72px;
+    }
+  }
+
+  .toolbar-icon {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 8px;
+    min-height: 64px;
+  }
+
+  .origin-state-input {
+    min-width: 120px;
+    width: 100%
+  }
+}
