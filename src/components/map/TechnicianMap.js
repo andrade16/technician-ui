@@ -42,7 +42,9 @@ function TechnicianMap(props) {
       map.addControl(
         new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" })
       );
-      map.addControl(new mapboxgl.AttributionControl({ compact: true }));
+      map.addControl(
+          new mapboxgl.AttributionControl({ compact: true })
+      );
 
       map.on("load", () => {
         map.addSource(LAYER_ID, { type: "geojson", data: geoJson });

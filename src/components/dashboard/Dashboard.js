@@ -6,6 +6,7 @@ import Paper from "@material-ui/core/Paper";
 import DashboardDrawer from "./DashboardDrawer";
 import DashboardAppBar from "./DashboardAppBar";
 import { getTechnicians } from "../../services/SolarFarmService";
+import {API_CALL_INTERVAL} from "../../utils/constants";
 import TechnicianMap from "../map/TechnicianMap";
 import {findCollisions} from "../../utils/utils";
 import "./Dashboard.scss";
@@ -27,7 +28,7 @@ function Dashboard() {
   const loadData = () => {
     getTechnicians(techIndex).then(data => {
       const collisions = findCollisions(data.features);
-      if (collisions.length > 0) {setTechnicianCollisions(collisions);}
+      setTechnicianCollisions(collisions)
       setTechnicianData(data)
     })
     techIndex++;
@@ -37,7 +38,7 @@ function Dashboard() {
     loadData();
     setInterval(() => {
       if (techIndex <= 15) {loadData();}
-    }, 10000)
+    }, API_CALL_INTERVAL)
   }, []);
 
   return (
