@@ -7,12 +7,14 @@ import DashboardDrawer from "./DashboardDrawer";
 import DashboardAppBar from "./DashboardAppBar";
 import { getTechnicians } from "../../services/SolarFarmService";
 import TechnicianMap from "../map/TechnicianMap";
+import {findCollisions} from "../../utils/utils";
 import "./Dashboard.scss";
 
 let techIndex = 0;
 
 function Dashboard() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [technicianCollisions, setTechnicianCollisions] = useState([]);
   const [technicianData, setTechnicianData] = useState({});
 
   const handleDrawerOpen = () => {
@@ -22,28 +24,27 @@ function Dashboard() {
     setOpen(false);
   };
 
-  useEffect(() => {
+  const loadData = () => {
     getTechnicians(techIndex).then(data => {
-      setTechnicianData(data);
-      techIndex++;
+      const collisions = findCollisions(data.features);
+      if (collisions.length > 0) {setTechnicianCollisions(collisions);}
+      setTechnicianData(data)
     })
+    techIndex++;
+  }
+
+  useEffect(() => {
+    loadData();
     setInterval(() => {
-      getTechnicians(techIndex).then(data => {
-        setTechnicianData(data);
-        techIndex++;
-      })
-    }, 60000)
-
+      if (techIndex <= 15) {loadData();}
+    }, 10000)
   }, []);
-
-  // console.log('TECH_DATA: ', technicianData);
 
   return (
     <div className="root">
       <CssBaseline />
-      <DashboardAppBar open={open} openDrawer={handleDrawerOpen} />
-      <DashboardDrawer open={open} closeDrawer={handleDrawerClose} />
-
+      <DashboardAppBar open={open} openDrawer={handleDrawerOpen} collisions={technicianCollisions} />
+      <DashboardDrawer open={open} closeDrawer={handleDrawerClose} data={technicianData}/>
       <main className="content">
         <div className="app-bar-spacer" />
         <Container maxWidth="lg" className="container">

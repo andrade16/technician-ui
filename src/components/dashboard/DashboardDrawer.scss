@@ -1,21 +1,23 @@
+$app-drawer-transition: width 195ms cubic-bezier(0.4, 0, 0.6, 1) 0ms;
 
 .root {
-  .drawer-paper {
-    width: 240px;
-    position: relative;
-    transition: width 225ms cubic-bezier(0.4, 0, 0.6, 1) 0ms;
-    white-space: nowrap;
-  }
-
   .drawer-paper-close {
     width: 56px;
     overflow-x: hidden;
     position: relative;
-    transition: width 195ms cubic-bezier(0.4, 0, 0.6, 1) 0ms;
+    transition: $app-drawer-transition;
 
     @media (min-width: 600px) {
+      white-space: nowrap;
       width: 72px;
     }
+  }
+
+  .drawer-paper {
+    width: 240px;
+    position: relative;
+    transition: $app-drawer-transition;
+    white-space: nowrap;
   }
 
   .toolbar-icon {
@@ -24,10 +26,5 @@
     justify-content: flex-end;
     padding: 0 8px;
     min-height: 64px;
-  }
-
-  .origin-state-input {
-    min-width: 120px;
-    width: 100%
   }
 }

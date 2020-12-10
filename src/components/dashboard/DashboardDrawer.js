@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import Drawer from "@material-ui/core/Drawer";
 import Divider from "@material-ui/core/Divider";
 import IconButton from "@material-ui/core/IconButton";
@@ -9,11 +9,13 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ListItemText from "@material-ui/core/ListItemText";
 import DashboardIcon from "@material-ui/icons/Dashboard";
+import PersonIcon from "@material-ui/icons/Person";
+import { getTimeFromEpoch } from "../../utils/utils";
 import "./DashboardDrawer.scss";
 
 export const mainListItems = (
   <div>
-    <ListItem button>
+    <ListItem>
       <ListItemIcon>
         <DashboardIcon />
       </ListItemIcon>
@@ -22,33 +24,8 @@ export const mainListItems = (
   </div>
 );
 
-export const secondaryListItems = (
-    <div>
-        <ListSubheader inset>Saved reports</ListSubheader>
-        <ListItem button>
-            <ListItemIcon>
-                <DashboardIcon />
-            </ListItemIcon>
-            <ListItemText primary="Current month" />
-        </ListItem>
-        <ListItem button>
-            <ListItemIcon>
-                <DashboardIcon />
-            </ListItemIcon>
-            <ListItemText primary="Last quarter" />
-        </ListItem>
-        <ListItem button>
-            <ListItemIcon>
-                <DashboardIcon />
-            </ListItemIcon>
-            <ListItemText primary="Year-end sale" />
-        </ListItem>
-    </div>
-);
-
-
-
 function DashboardDrawer(props) {
+  const { data } = props;
 
   return (
     <div className="root">
@@ -65,7 +42,32 @@ function DashboardDrawer(props) {
         <Divider />
         <List>{mainListItems}</List>
         <Divider />
-        <List>{secondaryListItems}</List>
+        <List>
+            <ListSubheader inset>Technicians</ListSubheader>
+            <div>
+            {data.features &&
+              data.features.map((tech, index) => (
+                <ListItem
+                    title={tech.properties.name}
+                    button
+                    data-index={index}
+                    key={index}
+                    className="tech-list-item"
+                    divider={true}
+                >
+                  <ListItemIcon>
+                    <PersonIcon />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={`Name: ${tech.properties.name}`}
+                    secondary={`Last seen: ${getTimeFromEpoch(
+                      tech.properties.tsecs
+                    )}`}
+                  />
+                </ListItem>
+              ))}
+          </div>
+        </List>
       </Drawer>
     </div>
   );

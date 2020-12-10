@@ -1,98 +1,115 @@
-import React, { useState, useEffect, Component } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
-import { getTechnicians } from "../../services/SolarFarmService";
+import { mapConfig, LAYER_ID } from "./mapConfig";
+import { getTimeFromEpoch } from "../../utils/utils";
 import "./TechnicianMap.scss";
 
-const access_token =
-  "pk.eyJ1Ijoid2lsbGlhbWFuZHJhZGUiLCJhIjoiY2o2OG9xMHIyMGpyeTM3bnlndmt5dDU1dSJ9.7sggpTuzSDmC61AZ2QoLnQ";
-mapboxgl.accessToken = access_token;
+mapboxgl.accessToken = mapConfig.access_token;
 
-let techIndex = 0;
-let map;
-
-class TechnicianMap extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      lng: -105,
-      lat: 33,
-      zoom: 4,
-      technicianData: {},
-      currentMarkers: []
-    };
-    this.loadData = this.loadData.bind(this);
-  }
-
-  componentDidUpdate(prevProps, prevState, snapshot) {}
-
-  componentDidMount() {
-    this.loadData();
-    setInterval(this.loadData, 60000);
-
-    map = new mapboxgl.Map({
-      container: this.mapContainer,
-      style: "mapbox://styles/mapbox/streets-v11",
-      center: [this.state.lng, this.state.lat],
-      zoom: this.state.zoom,
-    });
-
-    map.on("move", () => {
-      this.setState({
-        lng: map.getCenter().lng.toFixed(4),
-        lat: map.getCenter().lat.toFixed(4),
-        zoom: map.getZoom().toFixed(2),
-      });
-    });
-  }
-
-
-  loadData() {
-    getTechnicians(techIndex).then((data) => {
-      data.features.forEach((feature) => {
-        const marker = new mapboxgl.Marker().setLngLat(feature.geometry.coordinates).addTo(map);
-        const el = document.createElement("div");
-        el.className = "marker";
-
-      });
-      this.setState({ technicianData: data });
-      techIndex++;
-    });
-  }
-
-  render() {
-    const { technicianData } = this.state;
-
-    return (
-      <div style={{ width: "100%" }}>
-        <div className="sidebarStyle">
-          <div>
-            Longitude: {this.state.lng} | Latitude: {this.state.lat} | Zoom:{" "}
-            {this.state.zoom}
-          </div>
-        </div>
-        <div ref={(el) => (this.mapContainer = el)} className="mapContainer" />
-      </div>
-    );
-  }
-}
-
-/*function TechnicianMap(props) {
-
+function TechnicianMap(props) {
+  const [map, setMap] = useState(null);
+  const mapContainer = useRef(null);
 
   useEffect(() => {
-    const map = new mapboxgl.Map({
-      container: "map",
-      style: "mapbox://styles/mapbox/streets-v11", // stylesheet location
-      center: [-74.5, 40], // starting position [lng, lat]
-      zoom: 9, // starting zoom
-    });
-  });
+    const { data } = props;
+    let geoJson = { type: "FeatureCollection", features: [] };
+
+    // set data features
+    if (data.features) {
+      geoJson.features = data.features;
+    }
+
+    const initializeMap = ({ setMap, mapContainer }) => {
+      const map = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: mapConfig.mapStyle,
+        logoPosition: "top-left",
+        attributionControl: false,
+      });
+
+      // set map bounds
+      if (geoJson.features.length) {
+        const bounds = new mapboxgl.LngLatBounds();
+        geoJson.features.forEach((feature) => {
+          bounds.extend(feature.geometry.coordinates);
+        });
+        map.fitBounds(bounds, { maxZoom: 14, duration: 2000 });
+      }
+
+      map.addControl(
+        new mapboxgl.NavigationControl({ position: "bottom-right" })
+      );
+      map.addControl(
+        new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" })
+      );
+      map.addControl(new mapboxgl.AttributionControl({ compact: true }));
+
+      map.on("load", () => {
+        map.addSource(LAYER_ID, { type: "geojson", data: geoJson });
+        map.addLayer(mapConfig.layer);
+        map.getSource(LAYER_ID).setData(geoJson);
+        map.resize();
+        setMap(map);
+      });
+
+      map.on("click", LAYER_ID, (e) => {
+        const coordinates = e.features[0].geometry.coordinates.slice();
+        const properties = e.features[0].properties;
+        const popup = new mapboxgl.Popup({ offset: 15 })
+          .setLngLat(coordinates)
+          .setHTML(
+            "<h3>" +
+              properties.name +
+              "</h3>" +
+              "<h4>" +
+              getTimeFromEpoch(properties.tsecs) +
+              "</h4>"
+          )
+          .addTo(map);
+      });
+
+
+      // fly to functionality from drawer
+      const listElements = document.getElementsByClassName('tech-list-item');
+      if (listElements) {
+        for (let i=0; i<listElements.length; i++) {
+          listElements[i].addEventListener('click', () => {
+            const index = parseInt(listElements[i].dataset.index);
+            map.flyTo({center: data.features[index].geometry.coordinates})
+          })
+        }
+      }
+    };
+
+    const updateMap = ({ setMap }) => {
+      // remove the marker layer to update map with new marker locations
+      map.removeLayer(LAYER_ID);
+
+      // remove any open popups
+      const popups = document.getElementsByClassName("mapboxgl-popup");
+      if (popups[0]) popups[0].remove();
+
+      map.addLayer(mapConfig.layer);
+      map.getSource(LAYER_ID).setData(geoJson);
+      setMap(map);
+    };
+
+    if (!map) {
+      initializeMap({ setMap, mapContainer });
+    } else {
+      updateMap({ setMap });
+    }
+
+  }, [props.data]);
 
   return (
-      <div>
-        <div className="map"></div>
-      </div>
+    <div style={{ width: "100%" }}>
+      <div
+        ref={(el) => (mapContainer.current = el)}
+        className="map-container"
+      />
+    </div>
   );
-}*/
+}
 
 export default TechnicianMap;
